@@ -1,0 +1,48 @@
+version: '3'
+
+services: 
+  app:
+    build: .
+    container_name: micro-videos-app
+    entrypoint: dockerize -wait tcp://db:5432 -timeout 40s ./.docker/entrypoint.sh
+    tty: true
+    environment:
+      - DB_DRIVER=pgx
+      - DB_HOST=db
+      - DB_DATABASE=code_micro_videos
+      - DB_PORT=5432
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - SERVER_ADDR=0.0.0.0
+      - SERVER_PORT=9000
+    volumes:
+      - .:/usr/src/
+    networks:
+      - app-network
+    depends_on:
+      - db
+      - redis
+  db:
+    image: postgres:13-alpine
+    container_name: micro-videos-db
+    restart: always
+    tty: true
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=code_micro_videos
+    volumes:
+      - ./.docker/dbdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+  redis:
+    image: redis:alpine
+    container_name: micro-videos-redis
+    expose:
+      - 6379
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
