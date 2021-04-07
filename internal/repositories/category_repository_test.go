@@ -20,13 +20,13 @@ func TestCategoryRepository_GetCategories(t *testing.T) {
 	}
 
 	var fakeCategory = models.Category{
-		Id: uid,
-		Name: "valid_name",
+		Id:          uid,
+		Name:        "valid_name",
 		Description: "valid_description",
-		IsActive: true,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: nil,
+		IsActive:    true,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		DeletedAt:   nil,
 	}
 	testCases := []struct {
 		name     string
@@ -107,13 +107,13 @@ func TestCategoryRepository_Save(t *testing.T) {
 	}
 
 	var fakeCategory = models.Category{
-		Id: uid,
-		Name: "valid_name",
+		Id:          uid,
+		Name:        "valid_name",
 		Description: "valid_description",
-		IsActive: true,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: nil,
+		IsActive:    true,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		DeletedAt:   nil,
 	}
 	testCases := []struct {
 		name     string

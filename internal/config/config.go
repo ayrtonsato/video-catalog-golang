@@ -7,13 +7,13 @@ import (
 
 type Config struct {
 	ServerAddress string `mapstructure:"SERVER_ADDR"`
-	Port string `mapstructure:"SERVER_PORT"`
-	DBDriver string `mapstructure:"DB_DRIVE"`
-	DBHost string `mapstructure:"DB_HOST"`
-	DBPort string `mapstructure:"DB_PORT"`
-	DBDatabase string `mapstructure:"DB_DATABASE"`
-	DBUsername string `mapstructure:"DB_USERNAME"`
-	DBPassword string `mapstructure:"DB_PASSWORD"`
+	Port          string `mapstructure:"SERVER_PORT"`
+	DBDriver      string `mapstructure:"DB_DRIVE"`
+	DBHost        string `mapstructure:"DB_HOST"`
+	DBPort        string `mapstructure:"DB_PORT"`
+	DBDatabase    string `mapstructure:"DB_DATABASE"`
+	DBUsername    string `mapstructure:"DB_USERNAME"`
+	DBPassword    string `mapstructure:"DB_PASSWORD"`
 }
 
 func (c *Config) Load() error {
