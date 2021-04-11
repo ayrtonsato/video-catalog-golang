@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/ayrtonsato/video-catalog-golang/internal/config"
 	"github.com/ayrtonsato/video-catalog-golang/internal/setup"
-	"log"
 )
 
 func main() {
@@ -13,16 +14,20 @@ func main() {
 		log.Fatalf("config: failed to load config: %v", err.Error())
 	}
 
+	loggerSetup := setup.NewLogger(&c)
+	loggerSetup.Start()
+	logger := loggerSetup.Log
+
 	db := setup.NewDB(&c)
 	err = db.StartConn()
 	if err != nil {
-		log.Fatalf("db: failed to start connection: %v", err.Error())
+		logger.Fatalf("db: failed to start connection: %v", err.Error())
 	}
 
-	server := setup.NewServer(db.DB, &c)
+	server := setup.NewServer(db.DB, &c, logger)
 
 	err = server.Start()
 	if err != nil {
-		log.Fatalf("gin-server: failed to start gin: %v", err.Error())
+		logger.Fatalf("gin-server: failed to start gin: %v", err.Error())
 	}
 }

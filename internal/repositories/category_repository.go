@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/ayrtonsato/video-catalog-golang/internal/models"
+	logger "github.com/ayrtonsato/video-catalog-golang/pkg/logger"
 )
 
 type Category interface {
@@ -13,20 +14,17 @@ type Category interface {
 }
 
 type CategoryRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	log logger.Logger
 }
 
-func NewCategoryRepository(db *sql.DB) CategoryRepository {
+func NewCategoryRepository(db *sql.DB, log logger.Logger) CategoryRepository {
 	return CategoryRepository{
-		db,
+		db, log,
 	}
 }
 
-func (c *CategoryRepository) SetDB(db *sql.DB) {
-	c.db = db
-}
-
-func (*CategoryRepository) saveIntoCategory(row RepoReader) (models.Category, error) {
+func (c *CategoryRepository) saveIntoCategory(row RepoReader) (models.Category, error) {
 	var category models.Category
 	err := row.Scan(
 		&category.Id,
@@ -37,9 +35,7 @@ func (*CategoryRepository) saveIntoCategory(row RepoReader) (models.Category, er
 		&category.UpdatedAt,
 		&category.DeletedAt)
 	if err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			return models.Category{}, ErrNoRows
-		}
+		c.log.Error(err.Error())
 		return models.Category{}, err
 	}
 	return category, nil
@@ -51,9 +47,7 @@ func (c *CategoryRepository) GetCategories() ([]models.Category, error) {
 		context.Background(), "SELECT id, name, description, is_active, created_at, updated_at, deleted_at FROM categories",
 	)
 	if err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			return []models.Category{}, ErrNoRows
-		}
+		c.log.Error(err.Error())
 		return []models.Category{}, err
 	}
 	for rows.Next() {
@@ -64,22 +58,14 @@ func (c *CategoryRepository) GetCategories() ([]models.Category, error) {
 		categories = append(categories, newCategory)
 	}
 	if err := rows.Err(); err != nil {
+		c.log.Error(err.Error())
 		return []models.Category{}, err
+	}
+	if len(categories) == 0 {
+		return make([]models.Category, 0), nil
 	}
 	return categories, nil
 }
-
-/*func (c *CategoryRepository) GetCategoryByUUID(uuid uuid.UUID) (models.Category, error) {
-	row := c.db.QueryRowContext(context.Background(), "SELECT * FROM categories WHERE id = ?", uuid)
-	category := models.Category{}
-	if err := row.Scan(&category.Id, &category.Name, &category.Description, &category.IsActive, &category.CreatedAt, &category.UpdatedAt, &category.DeletedAt); err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			return models.Category{}, NoRows
-		}
-		return models.Category{}, nil
-	}
-	return category, nil
-}*/
 
 func (c *CategoryRepository) Save(name string, description string) (models.Category, error) {
 	insertStatement := `INSERT INTO categories(name, description)
@@ -88,6 +74,7 @@ func (c *CategoryRepository) Save(name string, description string) (models.Categ
 	`
 	stmt, err := c.db.Prepare(insertStatement)
 	if err != nil {
+		c.log.Error(err.Error())
 		return models.Category{}, err
 	}
 	defer stmt.Close()

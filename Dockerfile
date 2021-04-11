@@ -13,4 +13,9 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 
 WORKDIR /usr/src/
 
+COPY . .
+
+RUN go get -u -v ./...
+RUN go install -v ./...
+
 EXPOSE 9000

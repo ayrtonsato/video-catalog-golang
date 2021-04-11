@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"errors"
+	"testing"
+	"time"
+
 	mock_protocols "github.com/ayrtonsato/video-catalog-golang/internal/protocols/mocks"
 	mock_services "github.com/ayrtonsato/video-catalog-golang/internal/services/mocks"
 	"github.com/gofrs/uuid"
-	"testing"
-	"time"
 
 	mock_repositories "github.com/ayrtonsato/video-catalog-golang/internal/repositories/mocks"
 
@@ -100,13 +101,12 @@ func TestSaveCategoryController_Handle(t *testing.T) {
 				nameValidationMock.EXPECT().Validate().Times(1).Return(nil)
 				saveCategories.EXPECT().Save(gomock.Any(), gomock.Any()).Times(1)
 				SUT := &SaveCategoryController{
-					category: saveCategories,
+					category:   saveCategories,
 					validation: nameValidationMock,
-					dto: validDTO,
+					dto:        validDTO,
 				}
 				SUT.Handle()
 			},
-
 		},
 		{
 			name: "Should return 404 when validation fails",
@@ -115,12 +115,12 @@ func TestSaveCategoryController_Handle(t *testing.T) {
 				nameValidationMock := mock_protocols.NewMockValidation(ctrl)
 				nameValidationMock.EXPECT().Validate().Times(1).Return(errors.New("invalid field"))
 				SUT := &SaveCategoryController{
-					category: saveCategories,
+					category:   saveCategories,
 					validation: nameValidationMock,
-					dto: validDTO,
+					dto:        validDTO,
 				}
 				response := SUT.Handle()
-				require.Equal(t, response.Error.Error(), "invalid field")
+				require.Equal(t, response.Body.(error).Error(), "invalid field")
 				require.Equal(t, response.Code, 400)
 			},
 		},
@@ -135,9 +135,9 @@ func TestSaveCategoryController_Handle(t *testing.T) {
 					Save(gomock.Eq("valid_name"), gomock.Eq("valid_description")).
 					Times(1)
 				SUT := &SaveCategoryController{
-					category: saveCategories,
+					category:   saveCategories,
 					validation: nameValidationMock,
-					dto: validDTO,
+					dto:        validDTO,
 				}
 				SUT.Handle()
 			},
@@ -154,9 +154,9 @@ func TestSaveCategoryController_Handle(t *testing.T) {
 					Times(1).
 					Return(models.Category{}, errors.New("any error"))
 				SUT := &SaveCategoryController{
-					category: saveCategories,
+					category:   saveCategories,
 					validation: nameValidationMock,
-					dto: SaveCategoryDTO{Name: "valid_name", Description: "valid_description"},
+					dto:        SaveCategoryDTO{Name: "valid_name", Description: "valid_description"},
 				}
 				response := SUT.Handle()
 				require.Equal(t, response.Code, 500)
@@ -170,13 +170,13 @@ func TestSaveCategoryController_Handle(t *testing.T) {
 					t.Fatal(err)
 				}
 				newCategoryFake := models.Category{
-					Id: uid,
-					Name: "valid_name",
+					Id:          uid,
+					Name:        "valid_name",
 					Description: "valid_description",
-					DeletedAt: nil,
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
-					IsActive: true,
+					DeletedAt:   nil,
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+					IsActive:    true,
 				}
 				saveCategories := mock_services.NewMockWriterCategory(ctrl)
 				nameValidationMock := mock_protocols.NewMockValidation(ctrl)
@@ -187,9 +187,9 @@ func TestSaveCategoryController_Handle(t *testing.T) {
 					Times(1).
 					Return(newCategoryFake, nil)
 				SUT := &SaveCategoryController{
-					category: saveCategories,
+					category:   saveCategories,
 					validation: nameValidationMock,
-					dto: validDTO,
+					dto:        validDTO,
 				}
 				response := SUT.Handle()
 				require.Equal(t, response.Code, 201)

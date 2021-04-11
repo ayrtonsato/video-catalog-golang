@@ -6,6 +6,7 @@ import (
 )
 
 type Config struct {
+	ServerMode    string `mapstructure:"SERVER_MODE"`
 	ServerAddress string `mapstructure:"SERVER_ADDR"`
 	Port          string `mapstructure:"SERVER_PORT"`
 	DBDriver      string `mapstructure:"DB_DRIVE"`

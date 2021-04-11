@@ -25,8 +25,8 @@ func (c *GetCategoriesController) Handle() protocols.HttpResponse {
 }
 
 type SaveCategoryController struct {
-	category services.WriterCategory
-	dto SaveCategoryDTO
+	category   services.WriterCategory
+	dto        SaveCategoryDTO
 	validation protocols.Validation
 }
 
@@ -34,8 +34,8 @@ func NewSaveCategoryController(category services.WriterCategory,
 	dto SaveCategoryDTO,
 	validation protocols.Validation) SaveCategoryController {
 	return SaveCategoryController{
-		category:    category,
-		dto: dto,
+		category:   category,
+		dto:        dto,
 		validation: validation,
 	}
 }

@@ -19,6 +19,8 @@ services:
       - .:/usr/src/
     networks:
       - app-network
+    ports:
+      - "9000"
     depends_on:
       - db
       - redis

@@ -13,7 +13,7 @@ func NewSaveCategoryValidation(dto *SaveCategoryDTO) SaveCategoryValidation {
 }
 
 func (s SaveCategoryValidation) Validate() error {
-	return validation.ValidateStruct(&s.dto,
+	return validation.ValidateStruct(s.dto,
 		validation.Field(&s.dto.Name, validation.Required, validation.Length(5, 254)),
 		validation.Field(&s.dto.Description, validation.Required),
 	)
