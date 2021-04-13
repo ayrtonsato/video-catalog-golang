@@ -3,14 +3,16 @@ package repositories
 import (
 	"context"
 	"database/sql"
-
+	"errors"
 	"github.com/ayrtonsato/video-catalog-golang/internal/models"
 	logger "github.com/ayrtonsato/video-catalog-golang/pkg/logger"
+	"github.com/gofrs/uuid"
 )
 
 type Category interface {
 	GetCategories() ([]models.Category, error)
 	Save(name string, description string) (models.Category, error)
+	Update(id uuid.UUID, fields []string, values ...interface{}) error
 }
 
 type CategoryRepository struct {
@@ -80,4 +82,31 @@ func (c *CategoryRepository) Save(name string, description string) (models.Categ
 	defer stmt.Close()
 	row := stmt.QueryRow(name, description)
 	return c.saveIntoCategory(row)
+}
+
+func (c *CategoryRepository) Update(id uuid.UUID, fields []string, values ...interface{}) error {
+	updateStmt, err := DynamicUpdateQuery("categories", fields)
+	if err != nil {
+		c.log.Error(err.Error())
+	}
+	stmt, err := c.db.Prepare(updateStmt)
+	if err != nil {
+		c.log.Error(err.Error())
+		return err
+	}
+	defer stmt.Close()
+	exec, err := stmt.Exec(values...)
+	if err != nil {
+		c.log.Error(err.Error())
+		return err
+	}
+	affected, err := exec.RowsAffected()
+	if err != nil {
+		c.log.Error(err.Error())
+		return err
+	}
+	if affected > 0 {
+		return nil
+	}
+	return errors.New("repository: failed to update row")
 }

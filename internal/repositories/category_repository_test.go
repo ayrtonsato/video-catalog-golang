@@ -2,14 +2,15 @@ package repositories
 
 import (
 	"database/sql"
+	"regexp"
+	"testing"
+	"time"
+
 	"github.com/ayrtonsato/video-catalog-golang/internal/models"
 	mock_logger "github.com/ayrtonsato/video-catalog-golang/pkg/logger/mocks"
 	"github.com/gofrs/uuid"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
-	"regexp"
-	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
@@ -179,6 +180,71 @@ func TestCategoryRepository_Save(t *testing.T) {
 		},
 	}
 
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+			}
+			defer db.Close()
+			tc.testCase(t, db, mock, ctrl)
+		})
+	}
+}
+
+func TestCategoryRepository_Update(t *testing.T) {
+	testCases := []struct {
+		name     string
+		testCase func(t *testing.T, db *sql.DB, mock sqlmock.Sqlmock, ctrl *gomock.Controller)
+	}{
+		{
+			name: "Should update a category successfully",
+			testCase: func(t *testing.T, db *sql.DB, mock sqlmock.Sqlmock, ctrl *gomock.Controller) {
+				log := mock_logger.NewMockLogger(ctrl)
+				newUUID, err := uuid.NewV4()
+				require.NoError(t, err)
+				SUT := CategoryRepository{
+					db:  db,
+					log: log,
+				}
+				expectStmt := mock.ExpectPrepare("^UPDATE categories SET.*")
+				expectStmt.
+					ExpectExec().
+					WithArgs("other_name", "other_description").
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				log.EXPECT().Error(gomock.Any()).Times(0)
+				fields := []string{"name", "description"}
+				values := []interface{}{"other_name", "other_description"}
+				err = SUT.Update(newUUID, fields, values...)
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "Should throw error",
+			testCase: func(t *testing.T, db *sql.DB, mock sqlmock.Sqlmock, ctrl *gomock.Controller) {
+				log := mock_logger.NewMockLogger(ctrl)
+				newUUID, err := uuid.NewV4()
+				require.NoError(t, err)
+				SUT := CategoryRepository{
+					db:  db,
+					log: log,
+				}
+				expectStmt := mock.ExpectPrepare("^UPDATE categories SET.*")
+				expectStmt.
+					ExpectExec().
+					WithArgs("other_name", "other_description").
+					WillReturnError(sql.ErrConnDone)
+				log.EXPECT().Error(gomock.Eq(sql.ErrConnDone.Error())).Times(1)
+				fields := []string{"name", "description"}
+				values := []interface{}{"other_name", "other_description"}
+				err = SUT.Update(newUUID, fields, values...)
+				require.Error(t, err)
+				require.ErrorIs(t, err, sql.ErrConnDone)
+			},
+		},
+	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
