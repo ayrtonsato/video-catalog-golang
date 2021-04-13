@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/ayrtonsato/video-catalog-golang/internal/models"
 	mock_repositories "github.com/ayrtonsato/video-catalog-golang/internal/repositories/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/gofrs/uuid"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -17,13 +17,13 @@ func TestGetCategoriesDbService_GetCategories(t *testing.T) {
 		t.Fatal(err)
 	}
 	var fakeCategory = models.Category{
-		Id: uid,
-		Name: "valid_name",
+		Id:          uid,
+		Name:        "valid_name",
 		Description: "valid_description",
-		IsActive: true,
-		DeletedAt: nil,
-		UpdatedAt: time.Now(),
-		CreatedAt: time.Now(),
+		IsActive:    true,
+		DeletedAt:   nil,
+		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now(),
 	}
 	testCases := []struct {
 		name     string
@@ -95,13 +95,13 @@ func TestSaveDbCategory_Save(t *testing.T) {
 		t.Fatal(err)
 	}
 	var fakeCategory = models.Category{
-		Id: uid,
-		Name: "valid_name",
+		Id:          uid,
+		Name:        "valid_name",
 		Description: "valid_description",
-		IsActive: true,
-		DeletedAt: nil,
-		UpdatedAt: time.Now(),
-		CreatedAt: time.Now(),
+		IsActive:    true,
+		DeletedAt:   nil,
+		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now(),
 	}
 	testCases := []struct {
 		name     string
@@ -153,6 +153,64 @@ func TestSaveDbCategory_Save(t *testing.T) {
 				_, err := SUT.Save("valid_name", "valid_description")
 				require.NotEmpty(t, err)
 				require.Equal(t, err.Error(), "fake_error")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			tc.testCase(t, ctrl)
+		})
+	}
+}
+
+func TestUpdateDbCategoryService_Update(t *testing.T) {
+	uid, err := uuid.NewV4()
+	if err != nil {
+		t.Fatal(err)
+	}
+	testCases := []struct {
+		name     string
+		testCase func(t *testing.T, ctrl *gomock.Controller)
+	}{
+		{
+			name: "Should Update Category repository correctly",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				ctgRepository := mock_repositories.NewMockCategory(ctrl)
+				fieldValue := "other_valid_name"
+				ctgRepository.
+					EXPECT().
+					Update(
+						gomock.Eq(uid),
+						gomock.Eq([]string{"name"}),
+						gomock.Eq(fieldValue)).
+					Times(1)
+				SUT := UpdateDbCategoryService{
+					category: ctgRepository,
+				}
+				err := SUT.Update(uid, []string{"name"}, fieldValue)
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "Should throw error if exists",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				ctgRepository := mock_repositories.NewMockCategory(ctrl)
+				ctgRepository.
+					EXPECT().
+					Update(
+						gomock.Eq(uid),
+						gomock.Eq([]string{"name"}),
+						gomock.Eq("other_invalid_name")).
+					Times(1).Return(errors.New("service: failed to update category"))
+				SUT := UpdateDbCategoryService{
+					category: ctgRepository,
+				}
+				err := SUT.Update(uid, []string{"name"}, "other_invalid_name")
+				require.Error(t, err)
+				require.True(t, err.Error() == "service: failed to update category")
 			},
 		},
 	}
