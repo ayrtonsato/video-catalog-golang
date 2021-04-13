@@ -18,3 +18,23 @@ func (s SaveCategoryValidation) Validate() error {
 		validation.Field(&s.dto.Description, validation.Required),
 	)
 }
+
+type UpdateCategoryValidation struct {
+	dto *UpdateCategoryDTO
+}
+
+func NewUpdateCategoryValidation(dto *UpdateCategoryDTO) UpdateCategoryValidation {
+	return UpdateCategoryValidation{
+		dto: dto,
+	}
+}
+
+func (s UpdateCategoryValidation) Validate() error {
+	return validation.ValidateStruct(s.dto,
+		validation.Field(
+			&s.dto.Name,
+			validation.Required.When(s.dto.Description == "").
+				Error("cannot be blank when description is blank"),
+		),
+	)
+}
