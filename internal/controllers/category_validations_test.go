@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -49,32 +50,92 @@ func TestSaveCategoryValidation_Validate(t *testing.T) {
 }
 
 func TestUpdateCategoryValidation_Validate(t *testing.T) {
-	dto := UpdateCategoryDTO{
-		Name: "teste",
+	newUUID := uuid.Must(uuid.NewV4())
+	testCases := []struct {
+		name string
+		tc   func(t *testing.T)
+	}{
+		{
+			name: "Return nul when name and id is valid",
+			tc: func(t *testing.T) {
+				dto := UpdateCategoryDTO{
+					ID:   newUUID,
+					Name: "teste",
+				}
+				validator := NewUpdateCategoryValidation(&dto)
+				err := validator.Validate()
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "Return nil when description and id is valid",
+			tc: func(t *testing.T) {
+				dto2 := UpdateCategoryDTO{
+					ID:          newUUID,
+					Description: "teste",
+				}
+				validator2 := NewUpdateCategoryValidation(&dto2)
+				err2 := validator2.Validate()
+				require.NoError(t, err2)
+			},
+		},
+		{
+			name: "Return error when pass empty dto",
+			tc: func(t *testing.T) {
+				dto := UpdateCategoryDTO{}
+				validator := NewUpdateCategoryValidation(&dto)
+				err := validator.Validate()
+				require.Error(t, err)
+				require.True(t, err.Error() == "id: cannot be blank; name: cannot be blank when description is blank.")
+			},
+		},
+		{
+			name: "Return error when name and description is empty",
+			tc: func(t *testing.T) {
+				dto4 := UpdateCategoryDTO{
+					ID:          newUUID,
+					Name:        "",
+					Description: "",
+				}
+				validator4 := NewUpdateCategoryValidation(&dto4)
+				err4 := validator4.Validate()
+				require.Error(t, err4)
+				require.True(t, err4.Error() == "name: cannot be blank when description is blank.")
+			},
+		},
+		{
+			name: "Return error when id is nil (uuid type)",
+			tc: func(t *testing.T) {
+				dto := UpdateCategoryDTO{
+					ID:          uuid.Nil,
+					Name:        "valid_test",
+					Description: "",
+				}
+				validator := NewUpdateCategoryValidation(&dto)
+				err := validator.Validate()
+				require.Error(t, err)
+				require.True(t, err.Error() == "id: cannot be blank.")
+			},
+		},
+		{
+			name: "Return error when id is nil primitive type",
+			tc: func(t *testing.T) {
+				dto := UpdateCategoryDTO{
+					ID:          uuid.Nil,
+					Name:        "valid_test",
+					Description: "",
+				}
+				validator := NewUpdateCategoryValidation(&dto)
+				err := validator.Validate()
+				require.Error(t, err)
+				require.True(t, err.Error() == "id: cannot be blank.")
+			},
+		},
 	}
-	validator := NewUpdateCategoryValidation(&dto)
-	err := validator.Validate()
-	require.NoError(t, err)
 
-	dto2 := UpdateCategoryDTO{
-		Description: "teste",
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.tc(t)
+		})
 	}
-	validator2 := NewUpdateCategoryValidation(&dto2)
-	err2 := validator2.Validate()
-	require.NoError(t, err2)
-
-	dto3 := UpdateCategoryDTO{}
-	validator3 := NewUpdateCategoryValidation(&dto3)
-	err3 := validator3.Validate()
-	require.Error(t, err3)
-	require.True(t, err3.Error() == "name: cannot be blank when description is blank.")
-
-	dto4 := UpdateCategoryDTO{
-		Name:        "",
-		Description: "",
-	}
-	validator4 := NewUpdateCategoryValidation(&dto4)
-	err4 := validator4.Validate()
-	require.Error(t, err4)
-	require.True(t, err4.Error() == "name: cannot be blank when description is blank.")
 }
