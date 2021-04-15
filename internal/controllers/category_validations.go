@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/ayrtonsato/video-catalog-golang/internal/helpers"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -34,13 +33,7 @@ func NewUpdateCategoryValidation(dto *UpdateCategoryDTO) UpdateCategoryValidatio
 
 func (s UpdateCategoryValidation) Validate() error {
 	return validation.ValidateStruct(s.dto,
-		validation.Field(
-			&s.dto.ID,
-			validation.By(helpers.UUIDIsRequired)),
-		validation.Field(
-			&s.dto.Name,
-			validation.Required.When(s.dto.Description == "").
-				Error("cannot be blank when description is blank"),
-		),
+		validation.Field(&s.dto.Name, validation.Required, validation.Length(5, 254)),
+		validation.Field(&s.dto.Description, validation.Required),
 	)
 }
