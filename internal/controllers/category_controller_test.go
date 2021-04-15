@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"github.com/ayrtonsato/video-catalog-golang/internal/services"
 	"testing"
 	"time"
 
@@ -195,6 +196,166 @@ func TestSaveCategoryController_Handle(t *testing.T) {
 				require.Equal(t, response.Code, 201)
 				require.Equal(t, response.Body, newCategoryFake)
 
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			tc.testCase(t, ctrl)
+		})
+	}
+}
+
+func TestUpdateCategoryController_Handle(t *testing.T) {
+	fakeParams := make(map[string]interface{}, 0)
+	newUUID := uuid.Must(uuid.NewV4())
+	fakeParams["id"] = newUUID
+	validDTO := UpdateCategoryDTO{
+		Name:        "valid_name",
+		Description: "valid_description",
+	}
+	testCases := []struct {
+		name     string
+		testCase func(t *testing.T, ctrl *gomock.Controller)
+	}{
+		{
+			name: "Should return 204 No Content",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				updateServicesCategory := mock_services.NewMockUpdateCategory(ctrl)
+				nameValidationMock := mock_protocols.NewMockValidation(ctrl)
+				nameValidationMock.EXPECT().Validate().Times(1).Return(nil)
+				updateServicesCategory.
+					EXPECT().
+					Update(
+						gomock.Eq(newUUID),
+						gomock.Eq(validDTO.Name),
+						gomock.Eq(validDTO.Description)).
+					Times(1)
+				SUT := &UpdateCategoryController{
+					category:   updateServicesCategory,
+					validation: nameValidationMock,
+					dto:        validDTO,
+					params:     fakeParams,
+				}
+				resp := SUT.Handle()
+				require.Equal(t, resp, helpers.HTTPOkNoContent())
+			},
+		},
+		{
+			name: "Should return 404 when validation fails",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				updateServicesCategory := mock_services.NewMockUpdateCategory(ctrl)
+				nameValidationMock := mock_protocols.NewMockValidation(ctrl)
+				nameValidationMock.EXPECT().Validate().Times(1).Return(errors.New("invalid field"))
+				SUT := &UpdateCategoryController{
+					category:   updateServicesCategory,
+					validation: nameValidationMock,
+					dto:        validDTO,
+					params:     fakeParams,
+				}
+				response := SUT.Handle()
+				require.Equal(t, response.Body.(error).Error(), "invalid field")
+				require.Equal(t, response.Code, 400)
+			},
+		},
+		{
+			name: "Should return 500 if service throws error",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				updateServicesCategory := mock_services.NewMockUpdateCategory(ctrl)
+				nameValidationMock := mock_protocols.NewMockValidation(ctrl)
+				nameValidationMock.EXPECT().Validate().Times(1).Return(nil)
+				updateServicesCategory.
+					EXPECT().
+					Update(
+						gomock.Eq(newUUID),
+						gomock.Eq(validDTO.Name),
+						gomock.Eq(validDTO.Description)).
+					Times(1).
+					Return(errors.New("any error"))
+				SUT := &UpdateCategoryController{
+					category:   updateServicesCategory,
+					validation: nameValidationMock,
+					dto:        validDTO,
+					params:     fakeParams,
+				}
+				response := SUT.Handle()
+				require.Equal(t, response.Code, 500)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			tc.testCase(t, ctrl)
+		})
+	}
+}
+
+func TestDeleteCategoryController_Handle(t *testing.T) {
+	fakeParams := make(map[string]interface{}, 0)
+	newUUID := uuid.Must(uuid.NewV4())
+	fakeParams["id"] = newUUID
+	testCases := []struct {
+		name     string
+		testCase func(t *testing.T, ctrl *gomock.Controller)
+	}{
+		{
+			name: "Should return 204 No Content",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				deleteServicesCategory := mock_services.NewMockDeleteCategory(ctrl)
+				deleteServicesCategory.
+					EXPECT().
+					Delete(
+						gomock.Eq(newUUID)).
+					Times(1)
+				SUT := NewDeleteCategoryController(deleteServicesCategory, fakeParams)
+				resp := SUT.Handle()
+				require.Equal(t, resp, helpers.HTTPOkNoContent())
+			},
+		},
+		{
+			name: "Should return 404 when uuid is nil",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				deleteServicesCategory := mock_services.NewMockDeleteCategory(ctrl)
+				wrongFakeParam := map[string]interface{}{
+					"id": uuid.Nil,
+				}
+				SUT := NewDeleteCategoryController(deleteServicesCategory, wrongFakeParam)
+				response := SUT.Handle()
+				require.Equal(t, response.Code, 404)
+			},
+		},
+		{
+			name: "Should return 404 when uuid not found",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				deleteServicesCategory := mock_services.NewMockDeleteCategory(ctrl)
+				deleteServicesCategory.
+					EXPECT().
+					Delete(gomock.Eq(fakeParams["id"])).
+					Times(1).
+					Return(services.ErrCategoryNotFound)
+				SUT := NewDeleteCategoryController(deleteServicesCategory, fakeParams)
+				response := SUT.Handle()
+				require.Equal(t, response.Code, 404)
+			},
+		},
+		{
+			name: "Should return 500 when delete services throws error",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				deleteServicesCategory := mock_services.NewMockDeleteCategory(ctrl)
+				deleteServicesCategory.
+					EXPECT().
+					Delete(gomock.Eq(fakeParams["id"])).
+					Times(1).
+					Return(services.ErrCategoryUpdate)
+				SUT := NewDeleteCategoryController(deleteServicesCategory, fakeParams)
+				response := SUT.Handle()
+				require.Equal(t, response.Code, 500)
 			},
 		},
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/ayrtonsato/video-catalog-golang/internal/helpers"
 	"github.com/ayrtonsato/video-catalog-golang/internal/protocols"
 	"github.com/ayrtonsato/video-catalog-golang/internal/services"
+	"github.com/gofrs/uuid"
 )
 
 type GetCategoriesController struct {
@@ -49,8 +50,71 @@ func (c *SaveCategoryController) Handle() protocols.HttpResponse {
 	if err != nil {
 		return helpers.HTTPInternalError()
 	}
-	return protocols.HttpResponse{
-		Code: 201,
-		Body: category,
+	return helpers.HTTPCreated(category)
+}
+
+type UpdateCategoryController struct {
+	params     map[string]interface{}
+	category   services.UpdateCategory
+	dto        UpdateCategoryDTO
+	validation protocols.Validation
+}
+
+func NewUpdateCategoryController(category services.UpdateCategory,
+	dto UpdateCategoryDTO,
+	validation protocols.Validation,
+	params map[string]interface{}) UpdateCategoryController {
+	return UpdateCategoryController{
+		params:     params,
+		category:   category,
+		dto:        dto,
+		validation: validation,
 	}
+}
+
+func (u UpdateCategoryController) Handle() protocols.HttpResponse {
+	newUUID := u.params["id"].(uuid.UUID)
+	if newUUID == uuid.Nil {
+		return helpers.HTTPNotFound()
+	}
+	err := u.validation.Validate()
+	if err != nil {
+		return helpers.HTTPBadRequestError(err)
+	}
+	err = u.category.Update(newUUID, u.dto.Name, u.dto.Description)
+	if err != nil {
+		if err == services.ErrCategoryNotFound {
+			return helpers.HTTPNotFound()
+		}
+		return helpers.HTTPInternalError()
+	}
+	return helpers.HTTPOkNoContent()
+}
+
+type DeleteCategoryController struct {
+	params   map[string]interface{}
+	category services.DeleteCategory
+}
+
+func NewDeleteCategoryController(category services.DeleteCategory,
+	params map[string]interface{}) DeleteCategoryController {
+	return DeleteCategoryController{
+		params:   params,
+		category: category,
+	}
+}
+
+func (u DeleteCategoryController) Handle() protocols.HttpResponse {
+	newUUID := u.params["id"].(uuid.UUID)
+	if newUUID == uuid.Nil {
+		return helpers.HTTPNotFound()
+	}
+	err := u.category.Delete(newUUID)
+	if err != nil {
+		if err == services.ErrCategoryNotFound {
+			return helpers.HTTPNotFound()
+		}
+		return helpers.HTTPInternalError()
+	}
+	return helpers.HTTPOkNoContent()
 }

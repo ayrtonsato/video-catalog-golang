@@ -7,6 +7,7 @@ import (
 	"github.com/ayrtonsato/video-catalog-golang/internal/services"
 	"github.com/ayrtonsato/video-catalog-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 )
 
 type CategoryRoutes struct {
@@ -24,6 +25,7 @@ func NewCategoryRoutes(router *gin.Engine, db *sql.DB, log logger.Logger) Catego
 func (r CategoryRoutes) Routes() {
 	r.router.POST("/category", r.createCategory)
 	r.router.GET("/category", r.getCategories)
+	r.router.PUT("/category/:id", r.updateCategory)
 }
 
 func (r *CategoryRoutes) getCategories(ctx *gin.Context) {
@@ -49,4 +51,28 @@ func (r *CategoryRoutes) createCategory(ctx *gin.Context) {
 	ctx.JSON(resp.Code, gin.H{
 		"body": resp.Body,
 	})
+}
+
+func (r *CategoryRoutes) updateCategory(ctx *gin.Context) {
+	params := make(map[string]interface{})
+
+	id := ctx.Param("id")
+	newUUID, err := uuid.FromString(id)
+	if err != nil {
+		r.log.Error(err)
+	}
+
+	params["id"] = newUUID
+
+	var dto controllers.UpdateCategoryDTO
+	if err = ctx.ShouldBind(&dto); err != nil {
+		r.log.Error(err)
+	}
+	val := controllers.NewUpdateCategoryValidation(&dto)
+	repo := repositories.NewCategoryRepository(r.db, r.log)
+	serv := services.NewUpdateDbCategoryService(&repo)
+	ctrl := controllers.NewUpdateCategoryController(&serv, dto, val, params)
+	resp := ctrl.Handle()
+
+	ctx.JSON(resp.Code, resp.Body)
 }
