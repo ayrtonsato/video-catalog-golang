@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"regexp"
 	"testing"
 	"time"
@@ -242,6 +243,79 @@ func TestCategoryRepository_Update(t *testing.T) {
 				err = SUT.Update(newUUID, fields, values...)
 				require.Error(t, err)
 				require.ErrorIs(t, err, sql.ErrConnDone)
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+			}
+			defer db.Close()
+			tc.testCase(t, db, mock, ctrl)
+		})
+	}
+}
+
+func TestCategoryRepository_GetByID(t *testing.T) {
+	testCases := []struct {
+		name     string
+		testCase func(t *testing.T, db *sql.DB, mock sqlmock.Sqlmock, ctrl *gomock.Controller)
+	}{
+		{
+			name: "Should return a category successfully",
+			testCase: func(t *testing.T, db *sql.DB, mock sqlmock.Sqlmock, ctrl *gomock.Controller) {
+				newUUID, err := uuid.NewV4()
+				require.NoError(t, err)
+				fakeCategory := models.Category{
+					Id:          newUUID,
+					Name:        "test_name",
+					Description: "test_desc",
+					CreatedAt:   time.Now().UTC(),
+					UpdatedAt:   time.Now().UTC(),
+					IsActive:    true,
+					DeletedAt:   nil,
+				}
+				fields := sqlmock.NewRows([]string{
+					"id", "name",
+					"description", "is_active",
+					"created_at", "updated_at", "deleted_at",
+				}).AddRow(fakeCategory.Id, fakeCategory.Name, fakeCategory.Description,
+					fakeCategory.IsActive, fakeCategory.CreatedAt,
+					fakeCategory.UpdatedAt, fakeCategory.DeletedAt)
+				log := mock_logger.NewMockLogger(ctrl)
+				SUT := CategoryRepository{
+					db:  db,
+					log: log,
+				}
+				re := regexp.QuoteMeta("SELECT * FROM categories WHERE id=$1")
+				mock.ExpectQuery(re).
+					WithArgs(newUUID).WillReturnRows(fields)
+				category, err := SUT.GetByID(newUUID)
+				require.NoError(t, err)
+				require.Equal(t, category, fakeCategory)
+			},
+		},
+		{
+			name: "Should throw error",
+			testCase: func(t *testing.T, db *sql.DB, mock sqlmock.Sqlmock, ctrl *gomock.Controller) {
+				newUUID := uuid.Must(uuid.NewV4())
+				log := mock_logger.NewMockLogger(ctrl)
+				SUT := CategoryRepository{
+					db:  db,
+					log: log,
+				}
+				re := regexp.QuoteMeta("SELECT * FROM categories WHERE id=$1")
+				mock.ExpectQuery(re).
+					WithArgs(newUUID).
+					WillReturnError(sql.ErrNoRows)
+				log.EXPECT().Error(gomock.Eq(sql.ErrNoRows.Error())).Times(1)
+				_, err := SUT.GetByID(newUUID)
+				require.Error(t, err)
+				require.ErrorIs(t, err, ErrNoResult)
 			},
 		},
 	}

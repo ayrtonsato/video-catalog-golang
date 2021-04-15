@@ -13,6 +13,7 @@ type Category interface {
 	GetCategories() ([]models.Category, error)
 	Save(name string, description string) (models.Category, error)
 	Update(id uuid.UUID, fields []string, values ...interface{}) error
+	GetByID(id uuid.UUID) (models.Category, error)
 }
 
 type CategoryRepository struct {
@@ -109,4 +110,17 @@ func (c *CategoryRepository) Update(id uuid.UUID, fields []string, values ...int
 		return nil
 	}
 	return errors.New("repository: failed to update row")
+}
+
+func (c *CategoryRepository) GetByID(id uuid.UUID) (models.Category, error) {
+	query := "SELECT * FROM categories WHERE id=$1"
+	row := c.db.QueryRow(query, id)
+	category, err := c.saveIntoCategory(row)
+	if err != nil {
+		if errors.Is(row.Err(), sql.ErrNoRows) {
+			return models.Category{}, ErrNoResult
+		}
+		return models.Category{}, err
+	}
+	return category, nil
 }
