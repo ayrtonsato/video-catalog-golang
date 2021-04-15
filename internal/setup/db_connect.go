@@ -8,13 +8,13 @@ import (
 )
 
 type DB struct {
-	DB *sql.DB
-	config *config.Config
+	DB       *sql.DB
+	config   *config.Config
 	dbSource string
 }
 
 func NewDB(config *config.Config) DB {
-	dbSource := fmt.Sprintf("host=%s port=%s user=%s " +
+	dbSource := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		config.DBHost,
 		config.DBPort,
@@ -22,7 +22,7 @@ func NewDB(config *config.Config) DB {
 		config.DBPassword,
 		config.DBDatabase)
 	return DB{
-		config: config,
+		config:   config,
 		dbSource: dbSource,
 	}
 }
