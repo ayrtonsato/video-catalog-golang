@@ -1,10 +1,10 @@
 package services
 
 import (
-	"errors"
 	"github.com/ayrtonsato/video-catalog-golang/internal/models"
 	"github.com/ayrtonsato/video-catalog-golang/internal/repositories"
 	"github.com/gofrs/uuid"
+	"time"
 )
 
 type ReaderCategory interface {
@@ -16,7 +16,11 @@ type WriterCategory interface {
 }
 
 type UpdateCategory interface {
-	Update(id uuid.UUID, fields ...interface{}) error
+	Update(id uuid.UUID, name string, description string) error
+}
+
+type DeleteCategory interface {
+	Delete(id uuid.UUID) error
 }
 
 type GetCategoriesDbService struct {
@@ -57,10 +61,36 @@ func NewUpdateDbCategoryService(category repositories.Category) UpdateDbCategory
 	}
 }
 
-func (n *UpdateDbCategoryService) Update(id uuid.UUID, fields []string, values ...interface{}) error {
-	err := n.category.Update(id, fields, values...)
+func (n *UpdateDbCategoryService) Update(id uuid.UUID, name string, description string) error {
+	_, err := n.category.GetByID(id)
 	if err != nil {
-		return errors.New("service: failed to update category")
+		return ErrCategoryNotFound
+	}
+	err = n.category.Update(id, []string{"name", "description"}, name, description)
+	if err != nil {
+		return ErrCategoryUpdate
+	}
+	return nil
+}
+
+type DeleteDBCategoryService struct {
+	category repositories.Category
+}
+
+func NewDeleteDBCategoryService(category repositories.Category) DeleteDBCategoryService {
+	return DeleteDBCategoryService{
+		category,
+	}
+}
+
+func (d *DeleteDBCategoryService) Delete(id uuid.UUID) error {
+	_, err := d.category.GetByID(id)
+	if err != nil {
+		return ErrCategoryNotFound
+	}
+	err = d.category.Update(id, []string{"is_active", "deleted_at"}, false, time.Now().UTC())
+	if err != nil {
+		return ErrCategoryUpdate
 	}
 	return nil
 }

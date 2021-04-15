@@ -87,21 +87,39 @@ func (mr *MockWriterCategoryMockRecorder) Save(name, description interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockWriterCategory)(nil).Save), name, description)
 }
 
+// MockUpdateCategory is a mock of UpdateCategory interface
+type MockUpdateCategory struct {
+	ctrl     *gomock.Controller
+	recorder *MockUpdateCategoryMockRecorder
+}
+
+// MockUpdateCategoryMockRecorder is the mock recorder for MockUpdateCategory
+type MockUpdateCategoryMockRecorder struct {
+	mock *MockUpdateCategory
+}
+
+// NewMockUpdateCategory creates a new mock instance
+func NewMockUpdateCategory(ctrl *gomock.Controller) *MockUpdateCategory {
+	mock := &MockUpdateCategory{ctrl: ctrl}
+	mock.recorder = &MockUpdateCategoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockUpdateCategory) EXPECT() *MockUpdateCategoryMockRecorder {
+	return m.recorder
+}
+
 // Update mocks base method
-func (m *MockWriterCategory) Update(id uuid.UUID, fields ...interface{}) error {
+func (m *MockUpdateCategory) Update(id uuid.UUID, name, description string) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{id}
-	for _, a := range fields {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Update", varargs...)
+	ret := m.ctrl.Call(m, "Update", id, name, description)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update
-func (mr *MockWriterCategoryMockRecorder) Update(id interface{}, fields ...interface{}) *gomock.Call {
+func (mr *MockUpdateCategoryMockRecorder) Update(id, name, description interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{id}, fields...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockWriterCategory)(nil).Update), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUpdateCategory)(nil).Update), id, name, description)
 }
