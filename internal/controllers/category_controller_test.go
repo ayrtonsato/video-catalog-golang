@@ -366,3 +366,87 @@ func TestDeleteCategoryController_Handle(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSingleCategoryController_Handle(t *testing.T) {
+	fakeParams := make(map[string]interface{}, 0)
+	newUUID := uuid.Must(uuid.NewV4())
+	fakeParams["id"] = newUUID
+	fakeCategory := models.Category{
+		Id:          newUUID,
+		Name:        "fake_name",
+		Description: "fake_description",
+		IsActive:    true,
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
+		DeletedAt:   nil,
+	}
+	testCases := []struct {
+		name     string
+		testCase func(t *testing.T, ctrl *gomock.Controller)
+	}{
+		{
+			name: "Should return 200 with category",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				getServicesCategory := mock_services.NewMockReaderCategory(ctrl)
+				getServicesCategory.
+					EXPECT().
+					GetCategory(
+						gomock.Eq(newUUID)).
+					Times(1).
+					Return(fakeCategory, nil)
+				SUT := NewGetSingleCategoryController(getServicesCategory, fakeParams)
+				resp := SUT.Handle()
+				require.Equal(t, resp.Code, 200)
+				require.Equal(t, resp.Body.(models.Category), fakeCategory)
+			},
+		},
+		{
+			name: "Should return 404 when uuid is nil",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				getServicesCategory := mock_services.NewMockReaderCategory(ctrl)
+				wrongFakeParam := map[string]interface{}{
+					"id": uuid.Nil,
+				}
+				SUT := NewGetSingleCategoryController(getServicesCategory, wrongFakeParam)
+				response := SUT.Handle()
+				require.Equal(t, response.Code, 404)
+			},
+		},
+		{
+			name: "Should return 404 when uuid not found",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				getServicesCategory := mock_services.NewMockReaderCategory(ctrl)
+				getServicesCategory.
+					EXPECT().
+					GetCategory(gomock.Any()).
+					Times(1).
+					Return(models.Category{}, services.ErrCategoryNotFound)
+				SUT := NewGetSingleCategoryController(getServicesCategory, fakeParams)
+				response := SUT.Handle()
+				require.Equal(t, response.Code, 404)
+			},
+		},
+		{
+			name: "Should return 500 when get services throws error",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				getServicesCategory := mock_services.NewMockReaderCategory(ctrl)
+				getServicesCategory.
+					EXPECT().
+					GetCategory(gomock.Eq(fakeParams["id"])).
+					Times(1).
+					Return(models.Category{}, errors.New("test: failed"))
+				SUT := NewGetSingleCategoryController(getServicesCategory, fakeParams)
+				response := SUT.Handle()
+				require.Equal(t, response.Code, 500)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			tc.testCase(t, ctrl)
+		})
+	}
+}

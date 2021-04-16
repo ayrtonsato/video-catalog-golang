@@ -118,3 +118,31 @@ func (u DeleteCategoryController) Handle() protocols.HttpResponse {
 	}
 	return helpers.HTTPOkNoContent()
 }
+
+type GetSingleCategoryController struct {
+	params   map[string]interface{}
+	category services.ReaderCategory
+}
+
+func NewGetSingleCategoryController(category services.ReaderCategory,
+	params map[string]interface{}) GetSingleCategoryController {
+	return GetSingleCategoryController{
+		params:   params,
+		category: category,
+	}
+}
+
+func (g GetSingleCategoryController) Handle() protocols.HttpResponse {
+	newUUID := g.params["id"].(uuid.UUID)
+	if newUUID == uuid.Nil {
+		return helpers.HTTPNotFound()
+	}
+	category, err := g.category.GetCategory(newUUID)
+	if err != nil {
+		if err == services.ErrCategoryNotFound {
+			return helpers.HTTPNotFound()
+		}
+		return helpers.HTTPInternalError()
+	}
+	return helpers.HTTPOk(category)
+}
