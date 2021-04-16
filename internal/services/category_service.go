@@ -9,6 +9,7 @@ import (
 
 type ReaderCategory interface {
 	GetCategories() ([]models.Category, error)
+	GetCategory(id uuid.UUID) (models.Category, error)
 }
 
 type WriterCategory interface {
@@ -35,6 +36,10 @@ func NewGetCategoriesDbService(category repositories.Category) GetCategoriesDbSe
 
 func (g *GetCategoriesDbService) GetCategories() ([]models.Category, error) {
 	return g.category.GetCategories()
+}
+
+func (g *GetCategoriesDbService) GetCategory(id uuid.UUID) (models.Category, error) {
+	return g.category.GetByID(id)
 }
 
 type SaveDbCategoryService struct {

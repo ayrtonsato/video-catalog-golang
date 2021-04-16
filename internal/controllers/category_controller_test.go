@@ -10,8 +10,6 @@ import (
 	mock_services "github.com/ayrtonsato/video-catalog-golang/internal/services/mocks"
 	"github.com/gofrs/uuid"
 
-	mock_repositories "github.com/ayrtonsato/video-catalog-golang/internal/repositories/mocks"
-
 	"github.com/ayrtonsato/video-catalog-golang/internal/helpers"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
@@ -43,7 +41,7 @@ func TestGetCategoriesController_Handle(t *testing.T) {
 		{
 			name: "Should call Get repository",
 			testCase: func(t *testing.T, ctrl *gomock.Controller) {
-				getCategories := mock_repositories.NewMockCategory(ctrl)
+				getCategories := mock_services.NewMockReaderCategory(ctrl)
 				getCategories.EXPECT().GetCategories().Times(1)
 				SUT := &GetCategoriesController{
 					category: getCategories,
@@ -54,7 +52,7 @@ func TestGetCategoriesController_Handle(t *testing.T) {
 		{
 			name: "Should return 200 with list of categories",
 			testCase: func(t *testing.T, ctrl *gomock.Controller) {
-				getCategories := mock_repositories.NewMockCategory(ctrl)
+				getCategories := mock_services.NewMockReaderCategory(ctrl)
 				getCategories.EXPECT().GetCategories().Return(testCategory, nil)
 				SUT := &GetCategoriesController{
 					category: getCategories,
@@ -68,7 +66,7 @@ func TestGetCategoriesController_Handle(t *testing.T) {
 		{
 			name: "Should return 500 when SUT throws an error",
 			testCase: func(t *testing.T, ctrl *gomock.Controller) {
-				getCategories := mock_repositories.NewMockCategory(ctrl)
+				getCategories := mock_services.NewMockReaderCategory(ctrl)
 				getCategories.EXPECT().GetCategories().Return([]models.Category{}, errors.New("new error"))
 				SUT := &GetCategoriesController{
 					category: getCategories,

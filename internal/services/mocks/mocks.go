@@ -49,6 +49,21 @@ func (mr *MockReaderCategoryMockRecorder) GetCategories() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategories", reflect.TypeOf((*MockReaderCategory)(nil).GetCategories))
 }
 
+// GetCategory mocks base method
+func (m *MockReaderCategory) GetCategory(id uuid.UUID) (models.Category, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategory", id)
+	ret0, _ := ret[0].(models.Category)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategory indicates an expected call of GetCategory
+func (mr *MockReaderCategoryMockRecorder) GetCategory(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategory", reflect.TypeOf((*MockReaderCategory)(nil).GetCategory), id)
+}
+
 // MockWriterCategory is a mock of WriterCategory interface
 type MockWriterCategory struct {
 	ctrl     *gomock.Controller

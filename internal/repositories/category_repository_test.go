@@ -213,7 +213,7 @@ func TestCategoryRepository_Update(t *testing.T) {
 				expectStmt := mock.ExpectPrepare("^UPDATE categories SET.*")
 				expectStmt.
 					ExpectExec().
-					WithArgs("other_name", "other_description").
+					WithArgs("other_name", "other_description", newUUID).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 				log.EXPECT().Error(gomock.Any()).Times(0)
 				fields := []string{"name", "description"}
@@ -235,7 +235,7 @@ func TestCategoryRepository_Update(t *testing.T) {
 				expectStmt := mock.ExpectPrepare("^UPDATE categories SET.*")
 				expectStmt.
 					ExpectExec().
-					WithArgs("other_name", "other_description").
+					WithArgs("other_name", "other_description", newUUID).
 					WillReturnError(sql.ErrConnDone)
 				log.EXPECT().Error(gomock.Eq(sql.ErrConnDone.Error())).Times(1)
 				fields := []string{"name", "description"}
