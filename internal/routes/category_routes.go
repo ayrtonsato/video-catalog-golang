@@ -26,6 +26,7 @@ func (r CategoryRoutes) Routes() {
 	r.router.POST("/category", r.createCategory)
 	r.router.GET("/category", r.getCategories)
 	r.router.PUT("/category/:id", r.updateCategory)
+	r.router.DELETE("/category/:id", r.deleteCategory)
 }
 
 func (r *CategoryRoutes) getCategories(ctx *gin.Context) {
@@ -72,6 +73,24 @@ func (r *CategoryRoutes) updateCategory(ctx *gin.Context) {
 	repo := repositories.NewCategoryRepository(r.db, r.log)
 	serv := services.NewUpdateDbCategoryService(&repo)
 	ctrl := controllers.NewUpdateCategoryController(&serv, dto, val, params)
+	resp := ctrl.Handle()
+
+	ctx.JSON(resp.Code, resp.Body)
+}
+
+func (r *CategoryRoutes) deleteCategory(ctx *gin.Context) {
+	params := make(map[string]interface{})
+
+	id := ctx.Param("id")
+	newUUID, err := uuid.FromString(id)
+	if err != nil {
+		r.log.Error(err)
+	}
+	params["id"] = newUUID
+
+	repo := repositories.NewCategoryRepository(r.db, r.log)
+	serv := services.NewDeleteDBCategoryService(&repo)
+	ctrl := controllers.NewDeleteCategoryController(&serv, params)
 	resp := ctrl.Handle()
 
 	ctx.JSON(resp.Code, resp.Body)
