@@ -6,7 +6,10 @@ migratedown:
 test:
 	go test -v ./...
 
+coverage:
+	mkdir -p coverage && go tool cover -html=coverage/c.out && go tool cover -html=coverage/c.out -o coverage/coverage.html
+
 mockgen:
 	mockgen -source=internal/repositories/category_repository.go -destination=internal/repositories/mocks/mocks.go
 
-.PHONY: migrateup migratedown test mockgen
+.PHONY: migrateup migratedown test mockgen coverage
