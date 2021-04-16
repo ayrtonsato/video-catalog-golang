@@ -3,7 +3,6 @@ package repositories
 import (
 	"errors"
 	"fmt"
-	"time"
 )
 
 // RepoReader is an interface to override sql.Rows.Scan and sql.Row.Scan
@@ -16,14 +15,15 @@ func DynamicUpdateQuery(table string, fields []string) (string, error) {
 		return "", errors.New("validation: fields must be greater than 0")
 	}
 	stmt := fmt.Sprintf("UPDATE %s SET ", table)
-	for index, value := range fields {
+	index := 0
+	for _, value := range fields {
 		if index == 0 {
-			stmt = stmt + fmt.Sprintf("%s=?", value)
+			stmt = stmt + fmt.Sprintf("%s=$%v", value, index+1)
 		} else {
-			stmt = stmt + fmt.Sprintf(", %s=?", value)
+			stmt = stmt + fmt.Sprintf(", %s=$%v", value, index+1)
 		}
+		index++
 	}
-	s := time.Now().UTC().String()
-	stmt = fmt.Sprintf("%v, updated_at='%v' WHERE id=?", stmt, s)
+	stmt = fmt.Sprintf("%v, updated_at=(NOW()) WHERE id=$%v", stmt, index+1)
 	return stmt, nil
 }

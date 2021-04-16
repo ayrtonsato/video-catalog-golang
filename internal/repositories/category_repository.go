@@ -87,6 +87,7 @@ func (c *CategoryRepository) Save(name string, description string) (models.Categ
 
 func (c *CategoryRepository) Update(id uuid.UUID, fields []string, values ...interface{}) error {
 	updateStmt, err := DynamicUpdateQuery("categories", fields)
+	println(updateStmt)
 	if err != nil {
 		c.log.Error(err.Error())
 	}
@@ -96,6 +97,7 @@ func (c *CategoryRepository) Update(id uuid.UUID, fields []string, values ...int
 		return err
 	}
 	defer stmt.Close()
+	values = append(values, id)
 	exec, err := stmt.Exec(values...)
 	if err != nil {
 		c.log.Error(err.Error())
