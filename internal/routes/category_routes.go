@@ -23,14 +23,14 @@ func NewCategoryRoutes(router *gin.Engine, db *sql.DB, log logger.Logger) Catego
 }
 
 func (r CategoryRoutes) Routes() {
-	r.router.POST("/category", r.createCategory)
-	r.router.GET("/category", r.getCategories)
-	r.router.GET("/category/:id", r.getSingleCategory)
-	r.router.PUT("/category/:id", r.updateCategory)
-	r.router.DELETE("/category/:id", r.deleteCategory)
+	r.router.POST("/category", r.CreateCategory)
+	r.router.GET("/category", r.GetCategories)
+	r.router.GET("/category/:id", r.GetSingleCategory)
+	r.router.PUT("/category/:id", r.UpdateCategory)
+	r.router.DELETE("/category/:id", r.DeleteCategory)
 }
 
-func (r *CategoryRoutes) getCategories(ctx *gin.Context) {
+func (r *CategoryRoutes) GetCategories(ctx *gin.Context) {
 	repository := repositories.NewCategoryRepository(r.db, r.log)
 	service := services.NewGetCategoriesDbService(&repository)
 	controller := controllers.NewGetCategoriesController(&service)
@@ -40,7 +40,7 @@ func (r *CategoryRoutes) getCategories(ctx *gin.Context) {
 	})
 }
 
-func (r *CategoryRoutes) createCategory(ctx *gin.Context) {
+func (r *CategoryRoutes) CreateCategory(ctx *gin.Context) {
 	var json controllers.SaveCategoryDTO
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		json = controllers.SaveCategoryDTO{}
@@ -55,7 +55,7 @@ func (r *CategoryRoutes) createCategory(ctx *gin.Context) {
 	})
 }
 
-func (r *CategoryRoutes) updateCategory(ctx *gin.Context) {
+func (r *CategoryRoutes) UpdateCategory(ctx *gin.Context) {
 	params := make(map[string]interface{})
 
 	id := ctx.Param("id")
@@ -79,7 +79,7 @@ func (r *CategoryRoutes) updateCategory(ctx *gin.Context) {
 	ctx.JSON(resp.Code, resp.Body)
 }
 
-func (r *CategoryRoutes) deleteCategory(ctx *gin.Context) {
+func (r *CategoryRoutes) DeleteCategory(ctx *gin.Context) {
 	params := make(map[string]interface{})
 
 	id := ctx.Param("id")
@@ -97,7 +97,7 @@ func (r *CategoryRoutes) deleteCategory(ctx *gin.Context) {
 	ctx.JSON(resp.Code, resp.Body)
 }
 
-func (r *CategoryRoutes) getSingleCategory(ctx *gin.Context) {
+func (r *CategoryRoutes) GetSingleCategory(ctx *gin.Context) {
 	params := make(map[string]interface{})
 
 	id := ctx.Param("id")
