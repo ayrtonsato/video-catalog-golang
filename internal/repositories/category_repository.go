@@ -119,7 +119,7 @@ func (c *CategoryRepository) GetByID(id uuid.UUID) (models.Category, error) {
 	row := c.db.QueryRow(query, id)
 	category, err := c.saveIntoCategory(row)
 	if err != nil {
-		if errors.Is(row.Err(), sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return models.Category{}, ErrNoResult
 		}
 		return models.Category{}, err
