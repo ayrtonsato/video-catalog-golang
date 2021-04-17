@@ -39,7 +39,11 @@ func (g *GetCategoriesDbService) GetCategories() ([]models.Category, error) {
 }
 
 func (g *GetCategoriesDbService) GetCategory(id uuid.UUID) (models.Category, error) {
-	return g.category.GetByID(id)
+	category, err := g.category.GetByID(id)
+	if err == repositories.ErrNoResult {
+		return category, ErrCategoryNotFound
+	}
+	return category, err
 }
 
 type SaveDbCategoryService struct {

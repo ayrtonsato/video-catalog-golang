@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"github.com/ayrtonsato/video-catalog-golang/internal/models"
+	"github.com/ayrtonsato/video-catalog-golang/internal/repositories"
 	mock_repositories "github.com/ayrtonsato/video-catalog-golang/internal/repositories/mocks"
 	"github.com/gofrs/uuid"
 	"github.com/golang/mock/gomock"
@@ -329,6 +330,64 @@ func TestDeleteDBCategoryService_Delete(t *testing.T) {
 				err := SUT.Delete(uid)
 				require.Error(t, err)
 				require.ErrorIs(t, err, ErrCategoryNotFound)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			tc.testCase(t, ctrl)
+		})
+	}
+}
+
+func TestGetCategoriesDbService_GetCategory(t *testing.T) {
+	uid, err := uuid.NewV4()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakeCategory := models.Category{
+		Id:          uid,
+		Name:        "valid_name",
+		Description: "valid_description",
+		IsActive:    true,
+		DeletedAt:   nil,
+		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now(),
+	}
+	testCases := []struct {
+		name     string
+		testCase func(t *testing.T, ctrl *gomock.Controller)
+	}{
+		{
+			name: "Should get category",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				ctgRepository := mock_repositories.NewMockCategory(ctrl)
+				ctgRepository.
+					EXPECT().
+					GetByID(uid).
+					Return(fakeCategory, nil)
+				SUT := NewGetCategoriesDbService(ctgRepository)
+				category, err := SUT.GetCategory(uid)
+				require.NoError(t, err)
+				require.Equal(t, category, fakeCategory)
+			},
+		},
+		{
+			name: "Should return ErrCategoryNotFound",
+			testCase: func(t *testing.T, ctrl *gomock.Controller) {
+				ctgRepository := mock_repositories.NewMockCategory(ctrl)
+				ctgRepository.
+					EXPECT().
+					GetByID(uid).
+					Return(models.Category{}, repositories.ErrNoResult)
+				SUT := NewGetCategoriesDbService(ctgRepository)
+				category, err := SUT.GetCategory(uid)
+				require.Error(t, err)
+				require.True(t, err.Error() == ErrCategoryNotFound.Error())
+				require.Equal(t, category, models.Category{})
 			},
 		},
 	}
