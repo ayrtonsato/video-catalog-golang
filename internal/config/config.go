@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
 )
 
@@ -17,8 +16,14 @@ type Config struct {
 	DBPassword    string `mapstructure:"DB_PASSWORD"`
 }
 
-func (c *Config) Load() error {
-	viper.AddConfigPath(".")
+func (c *Config) Load(path string) error {
+	var p string
+	if path == "" {
+		p = "."
+	} else {
+		p = path
+	}
+	viper.AddConfigPath(p)
 	viper.SetConfigName("config")
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
@@ -28,7 +33,6 @@ func (c *Config) Load() error {
 	}
 
 	err = viper.Unmarshal(&c)
-	fmt.Println(c)
 	if err != nil {
 		return err
 	}
