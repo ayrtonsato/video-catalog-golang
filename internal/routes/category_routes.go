@@ -67,7 +67,7 @@ func (r *CategoryRoutes) UpdateCategory(ctx *gin.Context) {
 	params["id"] = newUUID
 
 	var dto controllers.UpdateCategoryDTO
-	if err = ctx.ShouldBind(&dto); err != nil {
+	if err = ctx.ShouldBindJSON(&dto); err != nil {
 		r.log.Error(err)
 	}
 	val := controllers.NewUpdateCategoryValidation(&dto)
