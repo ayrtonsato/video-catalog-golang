@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"flag"
 	"github.com/ayrtonsato/video-catalog-golang/internal/config"
 	"go.uber.org/zap"
 	"log"
@@ -25,6 +26,12 @@ func (l *Logger) Start() {
 	} else {
 		logger, err = zap.NewProduction()
 	}
+
+	// if the system is under testing, disable logs with nop constructor
+	if flag.Lookup("test.v") != nil {
+		logger = zap.NewNop()
+	}
+
 	if err != nil {
 		log.Fatalln(err)
 	}
