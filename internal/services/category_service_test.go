@@ -216,13 +216,13 @@ func TestUpdateDbCategoryService_Update(t *testing.T) {
 						gomock.Eq([]string{"name", "description"}),
 						gomock.Eq(fakeName),
 						gomock.Eq(fakeDesc)).
-					Times(1).Return(errors.New("service: failed to update category"))
+					Times(1).Return(ErrUpdateFailed)
 				SUT := UpdateDbCategoryService{
 					category: ctgRepository,
 				}
 				err := SUT.Update(uid, fakeName, fakeDesc)
 				require.Error(t, err)
-				require.True(t, err.Error() == "service: failed to update category")
+				require.True(t, err.Error() == ErrUpdateFailed.Error())
 			},
 		},
 		{
@@ -232,7 +232,7 @@ func TestUpdateDbCategoryService_Update(t *testing.T) {
 				ctgRepository.
 					EXPECT().
 					GetByID(uid).
-					Return(models.Category{}, ErrCategoryNotFound).Times(1)
+					Return(models.Category{}, ErrNotFound).Times(1)
 				ctgRepository.
 					EXPECT().
 					Update(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -242,7 +242,7 @@ func TestUpdateDbCategoryService_Update(t *testing.T) {
 				}
 				err := SUT.Update(uid, fakeName, fakeDesc)
 				require.Error(t, err)
-				require.ErrorIs(t, err, ErrCategoryNotFound)
+				require.ErrorIs(t, err, ErrNotFound)
 			},
 		},
 	}
@@ -303,13 +303,13 @@ func TestDeleteDBCategoryService_Delete(t *testing.T) {
 						gomock.Eq([]string{"is_active", "deleted_at"}),
 						gomock.Eq(false),
 						gomock.Any()).
-					Times(1).Return(errors.New("service: failed to update category"))
+					Times(1).Return(ErrUpdateFailed)
 				SUT := DeleteDBCategoryService{
 					category: ctgRepository,
 				}
 				err := SUT.Delete(uid)
 				require.Error(t, err)
-				require.True(t, err.Error() == "service: failed to update category")
+				require.True(t, err.Error() == ErrUpdateFailed.Error())
 			},
 		},
 		{
@@ -319,7 +319,7 @@ func TestDeleteDBCategoryService_Delete(t *testing.T) {
 				ctgRepository.
 					EXPECT().
 					GetByID(uid).
-					Return(models.Category{}, ErrCategoryNotFound).Times(1)
+					Return(models.Category{}, ErrNotFound).Times(1)
 				ctgRepository.
 					EXPECT().
 					Update(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -329,7 +329,7 @@ func TestDeleteDBCategoryService_Delete(t *testing.T) {
 				}
 				err := SUT.Delete(uid)
 				require.Error(t, err)
-				require.ErrorIs(t, err, ErrCategoryNotFound)
+				require.ErrorIs(t, err, ErrNotFound)
 			},
 		},
 	}
@@ -376,7 +376,7 @@ func TestGetCategoriesDbService_GetCategory(t *testing.T) {
 			},
 		},
 		{
-			name: "Should return ErrCategoryNotFound",
+			name: "Should return ErrNotFound",
 			testCase: func(t *testing.T, ctrl *gomock.Controller) {
 				ctgRepository := mock_repositories.NewMockCategory(ctrl)
 				ctgRepository.
@@ -386,7 +386,7 @@ func TestGetCategoriesDbService_GetCategory(t *testing.T) {
 				SUT := NewGetCategoriesDbService(ctgRepository)
 				category, err := SUT.GetCategory(uid)
 				require.Error(t, err)
-				require.True(t, err.Error() == ErrCategoryNotFound.Error())
+				require.True(t, err.Error() == ErrNotFound.Error())
 				require.Equal(t, category, models.Category{})
 			},
 		},

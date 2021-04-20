@@ -3,6 +3,6 @@ package services
 import "errors"
 
 var (
-	ErrCategoryNotFound = errors.New("service: category not found")
-	ErrCategoryUpdate   = errors.New("service: failed to update category")
+	ErrNotFound     = errors.New("service: object not found")
+	ErrUpdateFailed = errors.New("service: failed to update object")
 )

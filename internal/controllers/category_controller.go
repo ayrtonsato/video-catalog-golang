@@ -83,7 +83,7 @@ func (u UpdateCategoryController) Handle() protocols.HttpResponse {
 	}
 	err = u.category.Update(newUUID, u.dto.Name, u.dto.Description)
 	if err != nil {
-		if err == services.ErrCategoryNotFound {
+		if err == services.ErrNotFound {
 			return helpers.HTTPNotFound()
 		}
 		return helpers.HTTPInternalError()
@@ -111,7 +111,7 @@ func (u DeleteCategoryController) Handle() protocols.HttpResponse {
 	}
 	err := u.category.Delete(newUUID)
 	if err != nil {
-		if err == services.ErrCategoryNotFound {
+		if err == services.ErrNotFound {
 			return helpers.HTTPNotFound()
 		}
 		return helpers.HTTPInternalError()
@@ -139,7 +139,7 @@ func (g GetSingleCategoryController) Handle() protocols.HttpResponse {
 	}
 	category, err := g.category.GetCategory(newUUID)
 	if err != nil {
-		if err == services.ErrCategoryNotFound {
+		if err == services.ErrNotFound {
 			return helpers.HTTPNotFound()
 		}
 		return helpers.HTTPInternalError()

@@ -41,7 +41,7 @@ func (g *GetCategoriesDbService) GetCategories() ([]models.Category, error) {
 func (g *GetCategoriesDbService) GetCategory(id uuid.UUID) (models.Category, error) {
 	category, err := g.category.GetByID(id)
 	if err == repositories.ErrNoResult {
-		return category, ErrCategoryNotFound
+		return category, ErrNotFound
 	}
 	return category, err
 }
@@ -73,11 +73,11 @@ func NewUpdateDbCategoryService(category repositories.Category) UpdateDbCategory
 func (n *UpdateDbCategoryService) Update(id uuid.UUID, name string, description string) error {
 	_, err := n.category.GetByID(id)
 	if err != nil {
-		return ErrCategoryNotFound
+		return ErrNotFound
 	}
 	err = n.category.Update(id, []string{"name", "description"}, name, description)
 	if err != nil {
-		return ErrCategoryUpdate
+		return ErrUpdateFailed
 	}
 	return nil
 }
@@ -95,11 +95,11 @@ func NewDeleteDBCategoryService(category repositories.Category) DeleteDBCategory
 func (d *DeleteDBCategoryService) Delete(id uuid.UUID) error {
 	_, err := d.category.GetByID(id)
 	if err != nil {
-		return ErrCategoryNotFound
+		return ErrNotFound
 	}
 	err = d.category.Update(id, []string{"is_active", "deleted_at"}, false, time.Now().UTC())
 	if err != nil {
-		return ErrCategoryUpdate
+		return ErrUpdateFailed
 	}
 	return nil
 }

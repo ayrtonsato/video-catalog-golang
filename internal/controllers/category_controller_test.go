@@ -336,7 +336,7 @@ func TestDeleteCategoryController_Handle(t *testing.T) {
 					EXPECT().
 					Delete(gomock.Eq(fakeParams["id"])).
 					Times(1).
-					Return(services.ErrCategoryNotFound)
+					Return(services.ErrNotFound)
 				SUT := NewDeleteCategoryController(deleteServicesCategory, fakeParams)
 				response := SUT.Handle()
 				require.Equal(t, response.Code, 404)
@@ -350,7 +350,7 @@ func TestDeleteCategoryController_Handle(t *testing.T) {
 					EXPECT().
 					Delete(gomock.Eq(fakeParams["id"])).
 					Times(1).
-					Return(services.ErrCategoryUpdate)
+					Return(services.ErrUpdateFailed)
 				SUT := NewDeleteCategoryController(deleteServicesCategory, fakeParams)
 				response := SUT.Handle()
 				require.Equal(t, response.Code, 500)
@@ -420,7 +420,7 @@ func TestGetSingleCategoryController_Handle(t *testing.T) {
 					EXPECT().
 					GetCategory(gomock.Any()).
 					Times(1).
-					Return(models.Category{}, services.ErrCategoryNotFound)
+					Return(models.Category{}, services.ErrNotFound)
 				SUT := NewGetSingleCategoryController(getServicesCategory, fakeParams)
 				response := SUT.Handle()
 				require.Equal(t, response.Code, 404)
