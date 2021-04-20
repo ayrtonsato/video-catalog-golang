@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/ayrtonsato/video-catalog-golang/internal/config"
 	"github.com/ayrtonsato/video-catalog-golang/internal/routes"
 	"github.com/ayrtonsato/video-catalog-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
@@ -13,11 +12,11 @@ import (
 type Server struct {
 	store  *sql.DB
 	router *gin.Engine
-	config *config.Config
+	config *Config
 	logger logger.Logger
 }
 
-func NewServer(store *sql.DB, config *config.Config, logger logger.Logger) Server {
+func NewServer(store *sql.DB, config *Config, logger logger.Logger) Server {
 	server := Server{
 		store: store, config: config, logger: logger,
 	}

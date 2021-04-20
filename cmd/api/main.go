@@ -3,12 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/ayrtonsato/video-catalog-golang/internal/config"
 	"github.com/ayrtonsato/video-catalog-golang/internal/setup"
 )
 
 func main() {
-	c := config.Config{}
+	c := setup.Config{}
 	err := c.Load(".")
 	if err != nil {
 		log.Fatalf("config: failed to load config: %v", err.Error())

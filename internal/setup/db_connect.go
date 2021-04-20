@@ -3,17 +3,16 @@ package setup
 import (
 	"database/sql"
 	"fmt"
-	"github.com/ayrtonsato/video-catalog-golang/internal/config"
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type DB struct {
 	DB       *sql.DB
-	config   *config.Config
+	config   *Config
 	dbSource string
 }
 
-func NewDB(config *config.Config) DB {
+func NewDB(config *Config) DB {
 	dbSource := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		config.DBHost,

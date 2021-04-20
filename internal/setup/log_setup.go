@@ -2,17 +2,16 @@ package setup
 
 import (
 	"flag"
-	"github.com/ayrtonsato/video-catalog-golang/internal/config"
 	"go.uber.org/zap"
 	"log"
 )
 
 type Logger struct {
-	conf *config.Config
+	conf *Config
 	Log  *zap.SugaredLogger
 }
 
-func NewLogger(conf *config.Config) Logger {
+func NewLogger(conf *Config) Logger {
 	return Logger{
 		conf: conf,
 	}

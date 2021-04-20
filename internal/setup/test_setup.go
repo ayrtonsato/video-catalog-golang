@@ -2,7 +2,6 @@ package setup
 
 import (
 	"database/sql"
-	"github.com/ayrtonsato/video-catalog-golang/internal/config"
 	"github.com/ayrtonsato/video-catalog-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -12,7 +11,7 @@ import (
 )
 
 type TestSetup struct {
-	Config *config.Config
+	Config *Config
 	DB     *sql.DB
 	Log    logger.Logger
 	Server *gin.Engine
@@ -20,7 +19,7 @@ type TestSetup struct {
 
 func (ts *TestSetup) BuildConfig(t *testing.T, path string) *TestSetup {
 	gin.SetMode(gin.TestMode)
-	ts.Config = &config.Config{}
+	ts.Config = &Config{}
 	err := ts.Config.Load(path)
 	require.NoError(t, err)
 
@@ -35,7 +34,7 @@ func (ts *TestSetup) BuildLogger(t *testing.T) *TestSetup {
 	return ts
 }
 
-func (ts *TestSetup) BuildDB(t *testing.T, c *config.Config) *TestSetup {
+func (ts *TestSetup) BuildDB(t *testing.T, c *Config) *TestSetup {
 	if c == nil {
 		c = ts.Config
 	}
