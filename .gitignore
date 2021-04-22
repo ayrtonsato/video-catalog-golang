@@ -1,3 +1,5 @@
 .docker/dbdata
 dbdata
 coverage
+.env
+.env.*

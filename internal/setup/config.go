@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"flag"
 	"github.com/spf13/viper"
 )
 
@@ -17,15 +18,21 @@ type Config struct {
 }
 
 func (c *Config) Load(path string) error {
+	var envFile string
 	var p string
 	if path == "" {
 		p = "."
 	} else {
 		p = path
 	}
+	if flag.Lookup("test.v") != nil {
+		envFile = ".env.test"
+	} else {
+		envFile = ".env"
+	}
 	viper.AddConfigPath(p)
-	viper.SetConfigName("config")
 	viper.SetConfigType("env")
+	viper.SetConfigName(envFile)
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
