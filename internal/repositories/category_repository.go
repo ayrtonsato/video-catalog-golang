@@ -53,6 +53,7 @@ func (c *CategoryRepository) GetCategories() ([]models.Category, error) {
 		c.log.Error(err.Error())
 		return []models.Category{}, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		newCategory, err := c.saveIntoCategory(rows)
 		if err != nil {
