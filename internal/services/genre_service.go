@@ -70,12 +70,12 @@ func NewUpdateGenreDBService(genreRepository repositories.GenreDB) UpdateGenreDB
 	}
 }
 
-func (u *UpdateGenreDBService) Update(id uuid.UUID, name string, categories []uuid.UUID) error {
+func (u *UpdateGenreDBService) Update(id uuid.UUID, name string) error {
 	_, err := u.genreRepository.GetByID(id)
 	if err != nil {
 		return ErrNotFound
 	}
-	err = u.genreRepository.Update(id, categories, []string{"name"}, name)
+	err = u.genreRepository.Update(id, []string{"name"}, name)
 	if err != nil {
 		return ErrUpdateFailed
 	}
@@ -97,8 +97,15 @@ func NewDeleteGenreDBService(genreRepository repositories.GenreDB) DeleteGenreDB
 }
 
 func (d *DeleteGenreDBService) Delete(id uuid.UUID) error {
-	err := d.genreRepository.
-		Delete(id)
+	genre, err := d.genreRepository.GetByID(id)
+	if err != nil {
+		if errors.Is(err, repositories.ErrNoResult) {
+			return ErrNotFound
+		}
+		return ErrUpdateFailed
+	}
+	err = d.genreRepository.
+		Delete(genre)
 	if err != nil {
 		if errors.Is(err, repositories.ErrNoResult) {
 			return ErrNotFound

@@ -1,8 +1,10 @@
 package repositories
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/ayrtonsato/video-catalog-golang/pkg/logger"
 )
 
 // RepoReader is an interface to override sql.Rows.Scan and sql.Row.Scan
@@ -26,4 +28,18 @@ func DynamicUpdateQuery(table string, fields []string) (string, error) {
 	}
 	stmt = fmt.Sprintf("%v, updated_at=(NOW()) WHERE id=$%v", stmt, index+1)
 	return stmt, nil
+}
+
+func TransactionRollback(tx *sql.Tx, log logger.Logger, err error) {
+	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+		log.Errorf("update failed: %v, unable to back: %v", err, rollbackErr)
+	}
+}
+
+func TransactionCommit(tx *sql.Tx, log logger.Logger) error {
+	if commitErr := tx.Commit(); commitErr != nil {
+		log.Errorf("Fail to commit transaction: %v", commitErr)
+		return commitErr
+	}
+	return nil
 }

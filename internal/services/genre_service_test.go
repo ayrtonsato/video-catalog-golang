@@ -18,7 +18,7 @@ func TestGetGenresDBService_GetGenres(t *testing.T) {
 		t.Fatal(err)
 	}
 	var fakeGenre = models.Genre{
-		Id:        uid,
+		ID:        uid,
 		Name:      "valid_genre",
 		IsActive:  true,
 		DeletedAt: nil,
@@ -77,7 +77,7 @@ func TestGetGenresDBService_GetGenreByID(t *testing.T) {
 		t.Fatal(err)
 	}
 	fakeGenre := models.Genre{
-		Id:        uid,
+		ID:        uid,
 		Name:      "valid_name",
 		IsActive:  true,
 		DeletedAt: nil,
@@ -136,7 +136,7 @@ func TestGetGenresDBService_Save(t *testing.T) {
 	}
 	listCategories := []uuid.UUID{uuid.Must(uuid.NewV4()), uuid.Must(uuid.NewV4())}
 	var fakeGenre = models.Genre{
-		Id:        uid,
+		ID:        uid,
 		Name:      "valid_name",
 		IsActive:  true,
 		DeletedAt: nil,
@@ -192,9 +192,8 @@ func TestGetGenresDBService_Update(t *testing.T) {
 	uid := uuid.Must(uuid.NewV4())
 	fakeName := "fake_name"
 	fields := []string{"name"}
-	listCategories := []uuid.UUID{uuid.Must(uuid.NewV4()), uuid.Must(uuid.NewV4())}
 	var fakeGenre = models.Genre{
-		Id:        uid,
+		ID:        uid,
 		Name:      "valid_name",
 		IsActive:  true,
 		DeletedAt: nil,
@@ -218,12 +217,11 @@ func TestGetGenresDBService_Update(t *testing.T) {
 					EXPECT().
 					Update(
 						gomock.Eq(uid),
-						gomock.Eq(listCategories),
 						gomock.Eq(fields),
 						gomock.Eq(fakeName)).
 					Times(1)
 				SUT := NewUpdateGenreDBService(genreRepo)
-				err := SUT.Update(uid, "fake_name", listCategories)
+				err := SUT.Update(uid, "fake_name")
 				require.NoError(t, err)
 			},
 		},
@@ -240,12 +238,11 @@ func TestGetGenresDBService_Update(t *testing.T) {
 					EXPECT().
 					Update(
 						gomock.Eq(uid),
-						gomock.Eq(listCategories),
 						gomock.Eq(fields),
 						gomock.Eq(fakeName)).
 					Times(1).Return(ErrUpdateFailed)
 				SUT := NewUpdateGenreDBService(genreRepo)
-				err := SUT.Update(uid, "fake_name", listCategories)
+				err := SUT.Update(uid, "fake_name")
 				require.Error(t, err)
 				require.True(t, err.Error() == ErrUpdateFailed.Error())
 			},
@@ -263,12 +260,11 @@ func TestGetGenresDBService_Update(t *testing.T) {
 					EXPECT().
 					Update(
 						gomock.Eq(uid),
-						gomock.Eq(listCategories),
 						gomock.Eq(fields),
 						gomock.Eq(fakeName)).
 					Times(0)
 				SUT := NewUpdateGenreDBService(genreRepo)
-				err := SUT.Update(uid, "fake_name", listCategories)
+				err := SUT.Update(uid, "fake_name")
 				require.Error(t, err)
 				require.ErrorIs(t, err, ErrNotFound)
 			},
@@ -285,54 +281,69 @@ func TestGetGenresDBService_Update(t *testing.T) {
 }
 
 func TestDeleteGenreDBService_Delete(t *testing.T) {
-	uid, err := uuid.NewV4()
-	if err != nil {
-		t.Fatal(err)
+	fakeGenre := models.Genre{
+		ID:        uuid.Must(uuid.NewV4()),
+		Name:      "fake_name",
+		IsActive:  true,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		DeletedAt: nil,
 	}
 	testCases := []struct {
 		name     string
 		testCase func(t *testing.T, ctrl *gomock.Controller)
 	}{
 		{
-			name: "Should delete genre",
+			name: "Delete genre successfully",
 			testCase: func(t *testing.T, ctrl *gomock.Controller) {
 				genreRepo := mock_repositories.NewMockGenreDB(ctrl)
 				genreRepo.
 					EXPECT().
-					Delete(gomock.Eq(uid)).
+					GetByID(gomock.Eq(fakeGenre.ID)).
+					Times(1).Return(fakeGenre, nil)
+				genreRepo.
+					EXPECT().
+					Delete(gomock.Eq(fakeGenre)).
 					Times(1).Return(nil)
 				SUT := NewDeleteGenreDBService(genreRepo)
-				err := SUT.Delete(uid)
+				err := SUT.Delete(fakeGenre.ID)
 				require.NoError(t, err)
 			},
 		},
 		{
-			name: "Should throw error when delete genre fails",
+			name: "Throw ErrNoResult when no genre found",
 			testCase: func(t *testing.T, ctrl *gomock.Controller) {
 				genreRepo := mock_repositories.NewMockGenreDB(ctrl)
 				genreRepo.
 					EXPECT().
-					Delete(gomock.Eq(uid)).
-					Times(1).
-					Return(ErrUpdateFailed)
+					GetByID(gomock.Eq(fakeGenre.ID)).
+					Times(1).Return(models.Genre{}, repositories.ErrNoResult)
+				genreRepo.
+					EXPECT().
+					Delete(gomock.Eq(fakeGenre.ID)).
+					Times(0)
 				SUT := NewDeleteGenreDBService(genreRepo)
-				err := SUT.Delete(uid)
+				err := SUT.Delete(fakeGenre.ID)
 				require.Error(t, err)
-				require.ErrorIs(t, err, ErrUpdateFailed)
+				require.ErrorIs(t, err, ErrNotFound)
 			},
 		},
 		{
-			name: "Should throw error when genre not found",
+			name: "Throw ErrUpdateFailed when update genre failed",
 			testCase: func(t *testing.T, ctrl *gomock.Controller) {
 				genreRepo := mock_repositories.NewMockGenreDB(ctrl)
 				genreRepo.
 					EXPECT().
-					Delete(gomock.Eq(uid)).
-					Times(1).Return(repositories.ErrNoResult)
+					GetByID(gomock.Eq(fakeGenre.ID)).
+					Times(1).Return(fakeGenre, nil)
+				genreRepo.
+					EXPECT().
+					Delete(gomock.Eq(fakeGenre)).
+					Times(1).Return(repositories.ErrOnUpdate)
 				SUT := NewDeleteGenreDBService(genreRepo)
-				err := SUT.Delete(uid)
+				err := SUT.Delete(fakeGenre.ID)
 				require.Error(t, err)
-				require.ErrorIs(t, err, ErrNotFound)
+				require.ErrorIs(t, err, ErrUpdateFailed)
 			},
 		},
 	}

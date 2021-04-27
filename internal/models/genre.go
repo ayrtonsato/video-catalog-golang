@@ -6,7 +6,7 @@ import (
 )
 
 type Genre struct {
-	Id        uuid.UUID  `json:"id"`
+	ID        uuid.UUID  `json:"id"`
 	Name      string     `json:"name"`
 	IsActive  bool       `json:"isActive"`
 	CreatedAt time.Time  `json:"createdAt"`
